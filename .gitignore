@@ -1,1 +1,7 @@
 .venv
+/dags/__pycache__/
+# Ignore the DVC cache, where the actual data is stored
+.dvc/cache
+
+# Ignore the raw data file itself
+/include/data/apod_data.csv

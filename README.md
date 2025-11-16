@@ -1,15 +1,13 @@
-Overview
-========
+# Overview
 
 Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
 
-Project Contents
-================
+# Project Contents
 
 Your Astro project contains the following files and folders:
 
 - dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes one example DAG:
-    - `example_astronauts`: This DAG shows a simple ETL pipeline example that queries the list of astronauts currently in space from the Open Notify API and prints a statement for each astronaut. The DAG uses the TaskFlow API to define tasks in Python, and dynamic task mapping to dynamically print a statement for each astronaut. For more on how this DAG works, see our [Getting started tutorial](https://www.astronomer.io/docs/learn/get-started-with-airflow).
+  - `example_astronauts`: This DAG shows a simple ETL pipeline example that queries the list of astronauts currently in space from the Open Notify API and prints a statement for each astronaut. The DAG uses the TaskFlow API to define tasks in Python, and dynamic task mapping to dynamically print a statement for each astronaut. For more on how this DAG works, see our [Getting started tutorial](https://www.astronomer.io/docs/learn/get-started-with-airflow).
 - Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
 - include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
 - packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
@@ -17,8 +15,7 @@ Your Astro project contains the following files and folders:
 - plugins: Add custom or community plugins for your project to this file. It is empty by default.
 - airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
 
-Deploy Your Project Locally
-===========================
+# Deploy Your Project Locally
 
 Start Airflow on your local machine by running 'astro dev start'.
 
@@ -34,12 +31,32 @@ When all five containers are ready the command will open the browser to the Airf
 
 Note: If you already have either of the above ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
 
-Deploy Your Project to Astronomer
-=================================
+# Deploy Your Project to Astronomer
 
 If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://www.astronomer.io/docs/astro/deploy-code/
 
-Contact
-=======
+# Contact
 
 The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support.
+
+# Postgres Connection Override
+
+The `nasa_apod_pipeline` DAG now looks for a connection id stored in the Airflow Variable `POSTGRES_CONN_ID` (defaults to `postgres_default`). If the connection is not present in Airflow's metadata database, the DAG will fall back to the following in order:
+
+1. Airflow Variable `POSTGRES_CONN_URI`
+2. Environment variable `AIRFLOW_CONN_<CONN_ID>` (for example `AIRFLOW_CONN_POSTGRES_DEFAULT`)
+3. Environment variable `POSTGRES_CONN_URI`
+
+Supply any of the options above with a standard SQLAlchemy Postgres URI (e.g. `postgresql+psycopg2://user:pass@host:5432/dbname`) to run the pipeline outside of Astro's default environment.
+
+# Testing
+
+After installing the Astro CLI (which pulls in Airflow and test dependencies), use the following commands to validate changes locally:
+
+```pwsh
+astro dev start
+astro dev run dags test nasa_apod_pipeline 2025-01-01
+pytest tests/dags/test_dag_example.py
+```
+
+Set `POSTGRES_CONN_ID`/`POSTGRES_CONN_URI` via Airflow Variables or environment variables before running the DAG so `step_3_load_data` can reach your database.
